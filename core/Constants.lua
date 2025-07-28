@@ -30,6 +30,11 @@ addon.isClassic = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
 addon.isBCC = WOW_PROJECT_ID == WOW_PROJECT_BURNING_CRUSADE_CLASSIC
 addon.isWrath = WOW_PROJECT_ID == WOW_PROJECT_WRATH_CLASSIC
 addon.isCata = WOW_PROJECT_ID == WOW_PROJECT_CATACLYSM_CLASSIC
+addon.isMists = WOW_PROJECT_ID == WOW_PROJECT_MISTS_CLASSIC
+addon.isExpansionSupported = addon.isRetail or addon.isClassic or addon.isBCC or addon.isWrath or addon.isCata or addon.isMists
+if not addon.isExpansionSupported then
+	geterrorhandler()("Unsupport expansion. WOW_PROJECT_ID: " .. WOW_PROJECT_ID)
+end
 
 --<GLOBALS
 local _G = _G

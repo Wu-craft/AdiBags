@@ -342,7 +342,7 @@ end
 
 function addon:BAG_UPDATE(event, bag)
 	updatedBags[bag] = true
-	if addon.isRetail or addon.isWrath or addon.isCata then
+	if addon.isRetail or addon.isWrath or addon.isCata or addon.isMists then
 		self:SendMessage('AdiBags_BagUpdated', updatedBags)
 		wipe(updatedBags)
 	end

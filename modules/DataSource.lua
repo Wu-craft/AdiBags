@@ -115,7 +115,7 @@ function mod:OnEnable()
 end
 
 function mod:BANKFRAME_OPENED(e, kind)
-	if addon.isRetail or addon.isWrath or addon.isCata then
+	if addon.isRetail or addon.isWrath or addon.isCata or addon.isMists then
 		if kind == Enum.PlayerInteractionType.Banker then
 			self.atBank = true
 			return self:Update()
@@ -127,7 +127,7 @@ function mod:BANKFRAME_OPENED(e, kind)
 end
 
 function mod:BANKFRAME_CLOSED(e, kind)
-	if addon.isRetail or addon.isWrath or addon.isCata then
+	if addon.isRetail or addon.isWrath or addon.isCata or addon.isMists then
 		if kind == Enum.PlayerInteractionType.Banker then
 			self.atBank = false
 			return self:Update()

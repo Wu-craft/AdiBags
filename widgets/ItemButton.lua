@@ -460,7 +460,7 @@ if addon.isRetail then
 end
 
 local function GetBorder(quality, isQuestItem, questId, isQuestActive, settings)
-	if addon.isRetail or addon.isWrath or addon.isCata then
+	if addon.isRetail or addon.isWrath or addon.isCata or addon.isMists then
 		if settings.questIndicator then
 			if questId and not isQuestActive then
 				return TEXTURE_ITEM_QUEST_BANG
