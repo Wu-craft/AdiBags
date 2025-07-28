@@ -25,6 +25,9 @@ jobs:
     # "steps" holds a list of all the steps needed to package and release our AddOn
     steps:
 
+      - name: Install Subversion
+        run: sudo apt-get update && sudo apt-get install -y subversion
+
       # we first have to clone the AddOn project, this is a required step
       - name: Clone project
         uses: actions/checkout@v3
