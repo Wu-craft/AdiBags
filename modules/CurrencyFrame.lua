@@ -22,8 +22,8 @@ along with AdiBags.  If not, see <http://www.gnu.org/licenses/>.
 local addonName, addon = ...
 local L = addon.L
 
--- Don't load this file at all unless AdiBags is in retail.
-if not addon.isRetail then
+-- Don't load this file at all unless AdiBags is in a Currency supported version of WoW
+if not addon.isRetail and not addon.isWrath and not addon.isCata and not addon.isMists then
 	return
 end
 
@@ -46,6 +46,29 @@ local unpack = _G.unpack
 local wipe = _G.wipe
 --GLOBALS>
 
+local function BuildCurrencyListInfo(index)
+	if not addon.isWrath and not addon.isCata and not addon.isMists then
+		error("BuildCurrencyListInfo function should only be used in Classic versions.")
+		return
+	end
+
+	local currencyListInfo = {}
+	currencyListInfo.name, currencyListInfo.isHeader, currencyListInfo.isHeaderExpanded, 
+	currencyListInfo.isUnused, currencyListInfo.isWatched, currencyListInfo.quantity,
+	currencyListInfo.iconFileID, currencyListInfo.maximum, currencyListInfo.hasWeeklyLimit,
+	currencyListInfo.currentWeeklyAmount, currencyListInfo.unknown, currencyListInfo.itemID = _G.GetCurrencyListInfo(index)
+
+	return currencyListInfo
+end
+
+if addon.isWrath or addon.isCata or addon.isMists then
+	ExpandCurrencyList = _G.ExpandCurrencyList
+	format = _G.format
+	GetCurrencyListInfo = BuildCurrencyListInfo
+	GetCurrencyInfo = _G.GetCurrencyInfo
+	GetCurrencyListSize = _G.GetCurrencyListSize
+end
+
 local UpdateTable = addon.UpdateTable
 
 local mod = addon:NewModule('CurrencyFrame', 'ABEvent-1.0')
@@ -59,12 +82,12 @@ function mod:OnInitialize()
 		self.moduleName,
 		{
 			profile = {
-				shown = {
-					Honor = true
-				},
+				-- shown = {
+				-- 	Honor = true
+				-- },
 				hideZeroes = false,
 				text = addon:GetFontDefaults(NumberFontNormalLarge),
-				width = 4,
+				width = 3,
 			}
 		}
 	)
@@ -97,7 +120,11 @@ end
 function mod:ADDON_LOADED(_, name)
 	if name ~= 'Blizzard_TokenUI' then return end
 	self:UnregisterEvent('ADDON_LOADED')
-	hooksecurefunc(TokenFrame, "Update", function() self:Update() end)
+	if addon.isRetail then
+		hooksecurefunc(TokenFrame, "Update", function() self:Update() end)
+	else
+		hooksecurefunc("TokenFrame_Update", function() self:Update() end)
+	end
 	self.hooked = true
 end
 
@@ -168,7 +195,7 @@ do
 					if currencyListInfo.isHeader then
 						if not currencyListInfo.isHeaderExpanded then
 							tinsert(collapse, 1, index)
-							ExpandCurrencyList(index, true)
+							ExpandCurrencyList(index, addon.isRetail and true or 1)
 						end
 					else
 						return index, currencyListInfo
@@ -177,7 +204,7 @@ do
 			end
 		until index > GetCurrencyListSize()
 		for i, index in ipairs(collapse) do
-			ExpandCurrencyList(index, false)
+			ExpandCurrencyList(index, addon.isRetail and false or 0)
 		end
 	end
 
@@ -237,9 +264,11 @@ function mod:Update(event, currencyType, currencyQuantity)
 	end
 
 	-- Get all the currency information from the player and store it.
-	local shown, hideZeroes = self.db.profile.shown, self.db.profile.hideZeroes
+	local shown, hideZeroes = {}, self.db.profile.hideZeroes
 	for i, currencyListInfo in IterateCurrencies() do
-		if shown[currencyListInfo.name] and (currencyListInfo.quantity > 0 or not hideZeroes) then
+		-- Removed AdiBags configuration for which currencies to track in favour of the "Show On Backpack" functionality of the actual game
+		-- shown[currencyListInfo.name]
+		if currencyListInfo.isWatched and (currencyListInfo.quantity > 0 or not hideZeroes) then
 			tinsert(values, {
 				quantity = BreakUpLargeNumbers(currencyListInfo.quantity),
 				icon = format(ICON_STRING, currencyListInfo.iconFileID),
@@ -296,40 +325,40 @@ end
 function mod:GetOptions()
 	local values = {}
 	return {
-		shown = {
-			name = L['Currencies to show'],
-			type = 'multiselect',
-			order = 10,
-			values = function()
-				wipe(values)
-				for i, currencyListInfo in IterateCurrencies() do
-					values[currencyListInfo.name] = format(ICON_STRING, currencyListInfo.iconFileID)..currencyListInfo.name
-				end
-				return values
-			end,
-			width = 'double',
-		},
+		-- shown = {
+		-- 	name = L['Currencies to show'],
+		-- 	type = 'multiselect',
+		-- 	order = 10,
+		-- 	values = function()
+		-- 		wipe(values)
+		-- 		for i, currencyListInfo in IterateCurrencies() do
+		-- 			values[currencyListInfo.name] = format(ICON_STRING, currencyListInfo.iconFileID)..currencyListInfo.name
+		-- 		end
+		-- 		return values
+		-- 	end,
+		-- 	width = 'double',
+		-- },
 		hideZeroes = {
 			name = L['Hide zeroes'],
 			desc = L['Ignore currencies with null amounts.'],
 			type = 'toggle',
 			order = 20,
 		},
-		text = addon:CreateFontOptions(self.font, nil, 30),
-		layout = {
-			name = L['Layout'],
-			type = 'group',
-			order = 100,
-			inline = true,
-			args = {
-				width = {
-					name = L['Currencies per row'],
-					type = 'range',
-					min = 3,
-					max = 10,
-					step = 1
-				}
-			}
-		},
+		-- text = addon:CreateFontOptions(self.font, nil, 30),
+		-- layout = {
+		-- 	name = L['Layout'],
+		-- 	type = 'group',
+		-- 	order = 100,
+		-- 	inline = true,
+		-- 	args = {
+		-- 		width = {
+		-- 			name = L['Currencies per row'],
+		-- 			type = 'range',
+		-- 			min = 3,
+		-- 			max = 10,
+		-- 			step = 1
+		-- 		}
+		-- 	}
+		-- },
 	}, addon:GetOptionHandler(self, false, function() return self:Update() end)
 end
